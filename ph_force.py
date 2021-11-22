@@ -13,7 +13,7 @@ from bokeh.models import Slider, ColumnDataSource, CustomJS
 # 4. Do regular F-R layout w/ Bokeh 
 
 
-X = np.random.uniform(size=(25, 2))
+# X = np.random.uniform(size=(25, 2))
 
 def EMST(X):
 	''' Calculates the Euclidean minimum spanning tree of points 'X' ''' 
@@ -26,11 +26,12 @@ def EMST(X):
 	)
 	return(G, nx.minimum_spanning_tree(G))
 
-G, emst = EMST(X)
+# G, emst = EMST(X)
 
-nx.draw(G, pos = X)
+# nx.draw(G, pos = X)
 
 def components_cut(g, threshold):
+	''' Given threshold '''
 	from networkx.utils import UnionFind
 	assert 'weight' in g.edges[next(iter(g.edges))].keys()
 	uf = UnionFind(g.nodes)
@@ -47,7 +48,7 @@ def subgraph_cut(g, threshold):
 	G.add_weighted_edges_from((u,v,a['weight']) for (u, v, a) in g.edges(data=True) if a['weight'] <= threshold)
 	return(G)
 
-nx.draw(subgraph_cut(G, 0.40), pos = X)
+# nx.draw(subgraph_cut(G, 0.40), pos = X)
 
 
 

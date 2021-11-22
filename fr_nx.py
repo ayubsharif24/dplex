@@ -1,4 +1,5 @@
 import numpy as np
+import networkx as nx
 from networkx.utils import np_random_state
 
 def _process_params(G, center):
@@ -222,34 +223,39 @@ class ForceLayout():
 		self.temp = max(max(self._pos.T[0]) - min(self._pos.T[0]), max(self._pos.T[1]) - min(self._pos.T[1])) * 0.1
 
 		# Linear cooling scheme -- decrease temp by dt on each iteration so last iteration is size dt.
-		self.dt = self.temp / float(51)
+		self.dt = self.temp / float(250)
 
 		# Informational
 		self.error = np.inf
 		
-	def step_force(self, n_iter: int = 1):
-		for iteration in range(n_iter):
-			# matrix of difference between points
-			delta = self._pos[:, np.newaxis, :] - self._pos[np.newaxis, :, :]
+	def step_force(self, n_iter: int = 1, threshold = "default"):
+		if self.temp < 1e-6 or isinstance(threshold, str) and self.error < 1e-6:
+			return(self._pos)
+		else: 
+			for iteration in range(n_iter):
+				# matrix of difference between points
+				delta = self._pos[:, np.newaxis, :] - self._pos[np.newaxis, :, :] # n x n x d
 
-			# distance between points
-			distance = np.linalg.norm(delta, axis=-1)
-			np.clip(distance, 0.01, None, out=distance) # enforce minimum distance of 0.01
-			
-			# displacement "force"
-			displacement = np.einsum(
-				"ijk,ij->ik", delta, (self.k * self.k / distance ** 2 - self._A * distance / self.k)
-			)
+				# distance between points
+				distance = np.linalg.norm(delta, axis=-1) # n x n 
+				np.clip(distance, 0.001, None, out=distance) # enforce minimum distance of 0.01
+				
+				# displacement "force"
+				displacement = np.einsum(
+					"ijk,ij->ik", delta, (self.k * self.k / distance ** 2 - self._A * distance / self.k)
+				)
 
-			# update positions
-			length = np.linalg.norm(displacement, axis=-1)
-			length = np.where(length < 0.01, 0.1, length)
-			delta_pos = np.einsum("ij,i->ij", displacement, self.temp / length)
-			if self.fixed is not None:
-				delta_pos[self.fixed] = 0.0 # don't change positions of fixed nodes
-			self._pos += delta_pos
+				# update positions
+				length = np.linalg.norm(displacement, axis=-1)
+				length = np.where(length < 1.0, 0.5, length)
+				delta_pos = np.einsum("ij,i->ij", displacement, self.temp / length)
+				if self.fixed is not None:
+					delta_pos[self.fixed] = 0.0 # don't change positions of fixed nodes
+				self._pos += delta_pos
 
-			# cool temperature
-			self.temp -= self.dt
-			self.error = np.linalg.norm(delta_pos) / self.nv
+				# cool temperature
+				self.temp -= self.dt
+				self.error = np.linalg.norm(delta_pos) / self.nv
+		
+
 
