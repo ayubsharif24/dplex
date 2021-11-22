@@ -1,12 +1,13 @@
+# bokeh serve --show force_server.py
 from typing import * 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+# from fastapi import FastAPI
+# from fastapi.middleware.cors import CORSMiddleware
 import numpy as np
 from bokeh.models import AjaxDataSource, CustomJS, ColumnDataSource, Range1d
 from bokeh.plotting import figure, show
 import networkx as nx
 from fr_nx import ForceLayout
-from fastapi.encoders import jsonable_encoder
+# from fastapi.encoders import jsonable_encoder
 
 from bokeh.models import ColumnDataSource, Grid, LinearAxis, Plot, Rect, Slider
 from bokeh.io import curdoc
